@@ -5,10 +5,10 @@
 //  Created by Gurudutt on 1/20/20.
 //  Copyright © 2020 Gurudutt Perichetla. All rights reserved.
 //
-
+​
 import SwiftUI
 import Firebase
-
+​
 struct ContentView: View {
     
     @State var name = ""
@@ -31,13 +31,13 @@ struct ContentView: View {
         }
     }
 }
-
+​
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
     }
 }
-
+​
 struct MsgPage: View{
     
     var name = ""
@@ -57,6 +57,8 @@ struct MsgPage: View{
                 TextField("Msg", text: $typedmsg  ).textFieldStyle(RoundedBorderTextFieldStyle())
                 
                 Button(action: {
+                    self.msg.addMsg(msg: self.typedmsg, user: self.name)
+                    self.typedmsg = ""
                     
                 }){
                     Text("Send")
@@ -66,9 +68,9 @@ struct MsgPage: View{
         
     }
 }
-
+​
 class observer: ObservableObject{
-
+​
     @Published var msgs = [datatype]()
     init() {
         let db = Firestore.firestore()
@@ -86,18 +88,51 @@ class observer: ObservableObject{
                     let msg = i.document.get("msg") as! String
                     let id = i.document.documentID
                     
-                    self.msgs.append(datatype(id: id, name: name, msg: msg))
+                    self.msgs.append(datatype(id: id, name: name, msg: msg ))
                     
                 }
             }
         }
     }
     
+    func addMsg(msg: String, user: String){
+        let db = Firestore.firestore()
+        db.collection("msgs").addDocument(data: ["msg" : msg, "user": user]){
+            (err) in
+            
+            if  err != nil{
+                print((err?.localizedDescription)!)
+                return
+                }
+            print("success")
+        }
+    }
+    
 }
-
+​
 struct datatype: Identifiable{
     var id: String
     var name: String
     var msg: String
     
+}
+​
+struct MsgRow: View{
+    var msg = ""
+    var user = ""
+    var myMsg = false
+    
+    var body: some View{
+        HStack{
+            if myMsg{
+                Spacer()
+                
+                Text(msg).padding(8).background(Color.red).cornerRadius(6)
+            }
+            else{
+                Text(msg).padding(8).background(Color.green).cornerRadius(6)
+                Spacer()
+            }
+        }
+    }
 }
